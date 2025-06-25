@@ -1,0 +1,7 @@
+{
+  "name": "quran-quiz",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
