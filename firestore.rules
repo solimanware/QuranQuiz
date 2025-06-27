@@ -1,0 +1,52 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection - users can only read/write their own documents
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow read access to all authenticated users for leaderboard
+      allow read: if request.auth != null;
+    }
+    
+    // Game sessions collection
+    match /gameSessions/{sessionId} {
+      // Only authenticated users can create game sessions
+      allow create: if request.auth != null && 
+                   request.auth.uid == resource.data.uid;
+      
+      // Users can only read their own game sessions
+      allow read: if request.auth != null && 
+                 request.auth.uid == resource.data.uid;
+      
+      // Allow read access to all authenticated users for leaderboard queries
+      allow read: if request.auth != null;
+      
+      // Validate the data structure
+      allow create: if request.auth != null && 
+                   validateGameSession();
+    }
+    
+    // Helper function to validate game session data
+    function validateGameSession() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['uid', 'score', 'totalQuestions', 'correctAnswers', 'streakCount', 'accuracy', 'playedAt', 'duration']) &&
+             data.uid is string &&
+             data.score is number &&
+             data.totalQuestions is number &&
+             data.correctAnswers is number &&
+             data.streakCount is number &&
+             data.accuracy is number &&
+             data.playedAt is number &&
+             data.duration is number &&
+             data.score >= 0 &&
+             data.totalQuestions >= 0 &&
+             data.correctAnswers >= 0 &&
+             data.correctAnswers <= data.totalQuestions &&
+             data.streakCount >= 0 &&
+             data.accuracy >= 0 &&
+             data.accuracy <= 100;
+    }
+  }
+} 

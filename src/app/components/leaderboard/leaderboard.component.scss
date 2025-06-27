@@ -1,0 +1,713 @@
+@use "../../../theme/variables.scss";
+
+.leaderboard-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  position: relative;
+  overflow-x: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+/* Islamic Pattern Overlay */
+.islamic-pattern-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(
+      circle at 25% 25%,
+      rgba(74, 144, 226, 0.03) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 75% 75%,
+      rgba(129, 236, 236, 0.03) 0%,
+      transparent 50%
+    );
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cosmic Effects */
+.cosmic-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(
+      2px 2px at 20px 30px,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    ),
+    radial-gradient(2px 2px at 40px 70px, rgba(74, 144, 226, 0.2), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(129, 236, 236, 0.3), transparent);
+  background-repeat: repeat;
+  background-size: 100px 100px, 120px 120px, 80px 80px;
+  animation: cosmic-drift 20s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.glow-border {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid rgba(129, 236, 236, 0.1);
+  box-shadow: inset 0 0 60px rgba(74, 144, 226, 0.05),
+    0 0 60px rgba(129, 236, 236, 0.05);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes cosmic-drift {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  100% {
+    transform: translateX(-100px) translateY(-100px);
+  }
+}
+
+/* Navigation */
+.leaderboard-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(129, 236, 236, 0.1);
+  position: relative;
+  z-index: 10;
+}
+
+.nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(129, 236, 236, 0.2);
+  background: rgba(20, 20, 20, 0.6);
+  color: #81ecec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(129, 236, 236, 0.3);
+  }
+
+  .btn-icon {
+    font-size: 20px;
+    z-index: 2;
+  }
+
+  .btn-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    background: linear-gradient(
+      45deg,
+      rgba(129, 236, 236, 0.1),
+      rgba(74, 144, 226, 0.1)
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover .btn-glow {
+    opacity: 1;
+  }
+}
+
+.nav-brand {
+  text-align: center;
+
+  .brand-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 4px;
+
+    .ornament-circle {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #81ecec, #4a90e2);
+    }
+
+    .brand-icon {
+      font-size: 24px;
+      color: #ffd700;
+    }
+  }
+
+  .brand-text {
+    font-family: "Kitab", serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .brand-underline {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #81ecec, transparent);
+    margin: 4px auto 0;
+  }
+}
+
+/* User Rank Card */
+.user-rank-card {
+  margin: 20px 16px;
+  position: relative;
+  z-index: 5;
+}
+
+.rank-shrine {
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid rgba(129, 236, 236, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+
+  .shrine-header {
+    background: linear-gradient(
+      135deg,
+      rgba(74, 144, 226, 0.1),
+      rgba(129, 236, 236, 0.1)
+    );
+    padding: 12px 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(129, 236, 236, 0.1);
+
+    .header-ornament {
+      width: 20px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #81ecec, transparent);
+      display: inline-block;
+      margin: 0 12px;
+    }
+
+    .rank-title {
+      font-family: "Kitab", serif;
+      font-size: 16px;
+      color: #ffffff;
+      font-weight: 600;
+    }
+  }
+
+  .rank-content {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .rank-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+
+      ion-icon {
+        font-size: 32px;
+        &.gold {
+          color: #ffd700;
+        }
+        &.silver {
+          color: #c0c0c0;
+        }
+        &.bronze {
+          color: #cd7f32;
+        }
+        &.regular {
+          color: #81ecec;
+        }
+      }
+
+      .rank-number {
+        font-size: 18px;
+        font-weight: bold;
+        color: #ffffff;
+      }
+    }
+
+    .user-info {
+      flex: 1;
+
+      .user-name {
+        display: block;
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 4px;
+      }
+
+      .user-score {
+        font-size: 14px;
+        color: #81ecec;
+      }
+    }
+  }
+}
+
+/* Tab Selector */
+.tab-selector {
+  margin: 0 16px 20px;
+  position: relative;
+  z-index: 5;
+}
+
+.tab-container {
+  display: flex;
+  background: rgba(20, 20, 20, 0.6);
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid rgba(129, 236, 236, 0.1);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: transparent;
+  color: #999;
+  font-size: 14px;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s ease;
+  border: none;
+
+  &.active {
+    color: #ffffff;
+    background: rgba(129, 236, 236, 0.1);
+
+    .tab-indicator {
+      opacity: 1;
+    }
+  }
+
+  .tab-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, #81ecec, #4a90e2);
+    border-radius: 1px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+}
+
+/* Loading State */
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  position: relative;
+  z-index: 5;
+}
+
+.loading-shrine {
+  margin-bottom: 20px;
+}
+
+.loading-spinner-enhanced {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+
+  .spinner-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 2px solid transparent;
+    border-top: 2px solid #81ecec;
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0.5s;
+      border-top-color: #4a90e2;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 1s;
+      border-top-color: #ffd700;
+    }
+  }
+
+  .trophy-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    color: #ffd700;
+  }
+}
+
+.loading-text {
+  font-family: "Kitab", serif;
+  font-size: 16px;
+  color: #81ecec;
+
+  .loading-icon {
+    margin: 0 8px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+}
+
+/* Leaderboard Content */
+.leaderboard-content {
+  padding: 0 16px 20px;
+  position: relative;
+  z-index: 5;
+}
+
+.leaderboard-section {
+  background: rgba(20, 20, 20, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(129, 236, 236, 0.1);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.section-header {
+  background: linear-gradient(
+    135deg,
+    rgba(74, 144, 226, 0.1),
+    rgba(129, 236, 236, 0.1)
+  );
+  padding: 16px 20px;
+  text-align: center;
+  font-family: "Kitab", serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  border-bottom: 1px solid rgba(129, 236, 236, 0.1);
+
+  .section-icon {
+    margin: 0 8px;
+    color: #ffd700;
+  }
+}
+
+.leaderboard-list {
+  padding: 8px 0;
+}
+
+.leaderboard-entry {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  transition: all 0.3s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.current-user {
+    background: rgba(129, 236, 236, 0.05);
+    border-left: 3px solid #81ecec;
+  }
+
+  &.gold {
+    background: rgba(255, 215, 0, 0.05);
+
+    .rank-icon {
+      color: #ffd700;
+    }
+  }
+
+  &.silver {
+    background: rgba(192, 192, 192, 0.05);
+
+    .rank-icon {
+      color: #c0c0c0;
+    }
+  }
+
+  &.bronze {
+    background: rgba(205, 127, 50, 0.05);
+
+    .rank-icon {
+      color: #cd7f32;
+    }
+  }
+}
+
+.entry-rank {
+  .rank-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    .rank-icon {
+      font-size: 24px;
+      color: #81ecec;
+    }
+
+    .rank-number {
+      font-size: 12px;
+      font-weight: bold;
+      color: #999;
+    }
+  }
+}
+
+.entry-avatar {
+  .avatar-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid rgba(129, 236, 236, 0.3);
+  }
+
+  .avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(129, 236, 236, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(129, 236, 236, 0.3);
+
+    .avatar-icon {
+      font-size: 24px;
+      color: #81ecec;
+    }
+  }
+}
+
+.entry-info {
+  flex: 1;
+
+  .info-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+
+    .player-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .player-level,
+    .player-time {
+      font-size: 12px;
+      color: #81ecec;
+    }
+  }
+
+  .info-stats {
+    display: flex;
+    gap: 16px;
+
+    .stat-item {
+      font-size: 12px;
+      color: #999;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      i {
+        color: #81ecec;
+      }
+    }
+  }
+}
+
+.entry-xp {
+  text-align: center;
+
+  .xp-value {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffd700;
+  }
+
+  .xp-label {
+    font-size: 10px;
+    color: #999;
+  }
+}
+
+.entry-badge {
+  .fas {
+    font-size: 20px;
+    color: #ff6b6b;
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+
+  .empty-icon {
+    font-size: 48px;
+    color: #81ecec;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-family: "Kitab", serif;
+    font-size: 16px;
+  }
+}
+
+/* Auth Prompt */
+.auth-prompt {
+  margin: 40px 16px;
+  position: relative;
+  z-index: 5;
+}
+
+.prompt-shrine {
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid rgba(129, 236, 236, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+
+  .shrine-content {
+    padding: 40px 20px;
+    text-align: center;
+
+    .prompt-icon {
+      font-size: 48px;
+      color: #ffd700;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      font-family: "Kitab", serif;
+      font-size: 20px;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    p {
+      font-size: 14px;
+      color: #999;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+  }
+}
+
+.login-btn.enhanced {
+  padding: 14px 28px;
+  border-radius: 12px;
+  border: 1px solid rgba(129, 236, 236, 0.3);
+  background: rgba(20, 20, 20, 0.6);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(129, 236, 236, 0.3);
+  }
+
+  .btn-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      45deg,
+      rgba(129, 236, 236, 0.1),
+      rgba(74, 144, 226, 0.1)
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .btn-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    .btn-icon {
+      font-size: 18px;
+      color: #4285f4;
+    }
+  }
+
+  .btn-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  &:hover .btn-bg {
+    opacity: 1;
+  }
+
+  &:hover .btn-shine {
+    left: 100%;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

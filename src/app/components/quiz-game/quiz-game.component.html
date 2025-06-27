@@ -1,0 +1,424 @@
+<div class="quiz-container">
+  <!-- Islamic pattern background overlay -->
+  <div class="islamic-pattern-overlay"></div>
+
+  <!-- Cosmic particles and glow effects for futuristic gaming look -->
+  <div class="cosmic-particles"></div>
+  <div class="glow-border"></div>
+
+  <!-- Floating Islamic Geometric Elements -->
+  <div class="floating-geometry">
+    <div
+      class="geometry-item star-8"
+      style="top: 10%; left: 15%; animation-delay: 0s"
+    ></div>
+    <div
+      class="geometry-item hexagon"
+      style="top: 25%; right: 20%; animation-delay: 2s"
+    ></div>
+    <div
+      class="geometry-item star-6"
+      style="bottom: 30%; left: 10%; animation-delay: 4s"
+    ></div>
+    <div
+      class="geometry-item octagon"
+      style="top: 60%; right: 15%; animation-delay: 1s"
+    ></div>
+    <div
+      class="geometry-item diamond"
+      style="bottom: 15%; right: 25%; animation-delay: 3s"
+    ></div>
+  </div>
+
+  <!-- Enhanced Navigation Header -->
+  <nav class="quiz-nav">
+    <button
+      class="nav-btn leaderboard-nav-btn"
+      (click)="viewLeaderboard()"
+      title="لوحة الشرف"
+    >
+      <ion-icon name="trophy" class="btn-icon"></ion-icon>
+      <div class="btn-glow"></div>
+    </button>
+
+    <div class="quiz-brand">
+      <div class="brand-ornament">
+        <div class="ornament-circle"></div>
+        <ion-icon name="book" class="brand-icon"></ion-icon>
+        <div class="ornament-circle"></div>
+      </div>
+      <span class="brand-text" dir="rtl">مسابقة القرآن الكريم</span>
+      <div class="brand-underline"></div>
+    </div>
+
+    <div class="nav-controls">
+      <button
+        class="nav-btn sound-btn"
+        (click)="toggleSound()"
+        [class.sound-off]="!soundEnabled()"
+        title="{{ soundEnabled() ? 'إيقاف الصوت' : 'تشغيل الصوت' }}"
+      >
+        <ion-icon
+          [name]="soundEnabled() ? 'volume-high' : 'volume-mute'"
+          class="btn-icon"
+        ></ion-icon>
+        <div class="btn-glow"></div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Enhanced Stats Header with Islamic Design -->
+  <header class="quiz-header">
+    <div class="stats-wrapper">
+      <div class="stats-ornament top"></div>
+      <div class="stats-container">
+        <div class="stat-card score-card">
+          <i class="fas fa-gem stat-icon"></i>
+          <div class="stat-content">
+            <span class="stat-value">{{ gameStats().score }}</span>
+            <span class="stat-label" dir="rtl">النقاط</span>
+          </div>
+          <div class="stat-shine"></div>
+        </div>
+
+        <div class="stat-card question-card">
+          <i class="fas fa-book-open stat-icon"></i>
+          <div class="stat-content">
+            <span class="stat-value">{{ gameStats().totalQuestions + 1 }}</span>
+            <span class="stat-label" dir="rtl">السؤال</span>
+          </div>
+          <div class="stat-shine"></div>
+        </div>
+
+        <div class="stat-card accuracy-card">
+          <i class="fas fa-bullseye stat-icon"></i>
+          <div class="stat-content">
+            <span class="stat-value">{{ accuracy() }}%</span>
+            <span class="stat-label" dir="rtl">الدقة</span>
+          </div>
+          <div class="stat-shine"></div>
+        </div>
+
+        <div class="stat-card streak-card">
+          <i class="fas fa-fire stat-icon"></i>
+          <div class="stat-content">
+            <span class="stat-value">{{ gameStats().streakCount }}</span>
+            <span class="stat-label" dir="rtl">التتالي</span>
+          </div>
+          <div class="stat-shine"></div>
+        </div>
+      </div>
+      <div class="stats-ornament bottom"></div>
+    </div>
+  </header>
+
+  <!-- Enhanced Loading State -->
+  @if (isLoading()) {
+  <div class="loading-container">
+    <div class="loading-shrine">
+      <div class="shrine-top"></div>
+      <div class="shrine-body">
+        <div class="loading-spinner-enhanced">
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+          <ion-icon name="book" class="quran-icon"></ion-icon>
+        </div>
+        <div class="loading-particles">
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+          <div class="particle"></div>
+        </div>
+      </div>
+      <div class="shrine-base"></div>
+    </div>
+    <p class="loading-text" dir="rtl">
+      @if (queueSize() === 0) {
+      <i class="fas fa-sparkles loading-icon"></i>
+      جاري تحميل الآية المباركة...
+      <i class="fas fa-sparkles loading-icon"></i>
+      } @else {
+      <i class="fas fa-mosque loading-icon"></i>
+      جاري تحضير السؤال...
+      <i class="fas fa-mosque loading-icon"></i>
+      }
+    </p>
+  </div>
+  }
+
+  <!-- Enhanced Quiz Question -->
+  @if (currentQuestion() && !isLoading()) {
+  <div class="question-container">
+    <!-- Beautiful Ayah Display -->
+    <div class="ayah-shrine">
+      <div class="shrine-header">
+        <div class="header-ornament"></div>
+        <div class="bismillah-text" dir="rtl">
+          بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+        </div>
+        <div class="header-ornament"></div>
+      </div>
+
+      <div class="ayah-card">
+        <div class="ayah-frame">
+          <div class="frame-corner top-left"></div>
+          <div class="frame-corner top-right"></div>
+          <div class="frame-corner bottom-left"></div>
+          <div class="frame-corner bottom-right"></div>
+
+          <div class="ayah-text-container">
+            <div class="ayah-text" dir="rtl">
+              {{ currentQuestion()!.ayah.text.split("\n")[0] }}
+            </div>
+
+            <div class="ayah-ornament">
+              <div class="ornament-left"></div>
+              <div class="verse-separator">
+                ﴿ {{ enToAr(currentQuestion()!.ayah.numberInSurah) }} ﴾
+              </div>
+              <div class="ornament-right"></div>
+            </div>
+          </div>
+
+          <div class="ayah-glow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Answer Options -->
+    <div class="options-shrine">
+      <div class="options-header" dir="rtl">
+        <span class="options-title">اختر الإجابة الصحيحة</span>
+        <div class="options-decoration">
+          <i class="fas fa-star"></i>
+          <i class="fas fa-star-of-life"></i>
+          <i class="fas fa-star"></i>
+        </div>
+      </div>
+
+      <div class="options-container">
+        @for (option of currentQuestion()!.options; track option.number; let i =
+        $index) {
+        <button
+          class="option-card enhanced"
+          (click)="selectOption(option)"
+          [disabled]="showResult()"
+          [style.animation-delay.ms]="i * 150"
+          [class.selected]="selectedOption() === option"
+          [class.correct]="
+            showResult() &&
+            option.number === currentQuestion()!.correctSurah.number
+          "
+          [class.wrong]="
+            showResult() && selectedOption() === option && !isCorrect()
+          "
+        >
+          <div class="option-content">
+            <div class="arabic-name" dir="rtl">{{ option.name }}</div>
+            <div class="option-decoration">
+              <span class="deco-line"></span>
+              <i class="fas fa-diamond deco-dot"></i>
+              <span class="deco-line"></span>
+            </div>
+          </div>
+
+          @if (showResult() && option.number ===
+          currentQuestion()!.correctSurah.number) {
+          <div class="result-indicator correct">
+            <div class="indicator-bg"></div>
+            <i class="fas fa-check indicator-icon"></i>
+          </div>
+          } @if (showResult() && selectedOption() === option && !isCorrect()) {
+          <div class="result-indicator wrong">
+            <div class="indicator-bg"></div>
+            <i class="fas fa-times indicator-icon"></i>
+          </div>
+          }
+        </button>
+        }
+      </div>
+      <div style="height: 100px">.</div>
+    </div>
+
+    <!-- Enhanced Result Display -->
+    @if (showResult()) {
+    <div class="result-shrine">
+      <div class="result-container">
+        <div
+          class="result-card {{
+            isCorrect() ? 'correct-result' : 'wrong-result'
+          }}"
+        >
+          <div class="result-background">
+            <div class="result-pattern"></div>
+            <div class="result-particles">
+              @for (particle of [1,2,3,4,5,6,7,8]; track particle) {
+              <div class="result-particle"></div>
+              }
+            </div>
+          </div>
+
+          @if (isCorrect()) {
+          <div class="result-content success">
+            <div class="result-icon-container">
+              <div class="icon-bg"></div>
+              <i class="fas fa-trophy result-icon"></i>
+              <div class="icon-rays">
+                @for (ray of [1,2,3,4,5,6,7,8]; track ray) {
+                <div class="ray"></div>
+                }
+              </div>
+            </div>
+            <h3 dir="rtl">بارك الله فيك! ممتاز!</h3>
+            <p dir="rtl">
+              <i class="fas fa-star success-icon"></i>
+              أحسنت! لقد حصلت على +١٠ نقاط
+              <i class="fas fa-star success-icon"></i>
+            </p>
+          </div>
+          } @else {
+          <div class="result-content failure">
+            <div class="result-icon-container">
+              <div class="icon-bg"></div>
+              <i class="fas fa-hands-praying result-icon"></i>
+            </div>
+            <h3 dir="rtl">لا بأس، تعلم واستمر</h3>
+            <p dir="rtl">
+              الإجابة الصحيحة هي:
+              <strong class="correct-answer">{{
+                currentQuestion()!.correctSurah.name
+              }}</strong>
+            </p>
+          </div>
+          }
+
+          <div class="surah-info-enhanced">
+            <div class="info-header" dir="rtl">
+              <i class="fas fa-clipboard-list info-icon"></i>
+              معلومات عن السورة
+              <i class="fas fa-clipboard-list info-icon"></i>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label" dir="rtl">النزول:</div>
+                <div class="info-value" dir="rtl">
+                  <span
+                    class="revelation-badge {{
+                      currentQuestion()!.correctSurah.revelationType ===
+                      'Meccan'
+                        ? 'meccan'
+                        : 'medinan'
+                    }}"
+                  >
+                    {{
+                      currentQuestion()!.correctSurah.revelationType ===
+                      "Meccan"
+                        ? "مكية"
+                        : "مدنية"
+                    }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <div class="info-label" dir="rtl">عدد الآيات:</div>
+                <div class="info-value">
+                  <span class="ayah-count">{{
+                    currentQuestion()!.correctSurah.numberOfAyahs
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          @if (!isCorrect()) {
+          <button class="next-btn enhanced" (click)="nextQuestion()" dir="rtl">
+            <span class="btn-bg"></span>
+            <span class="btn-content">
+              <i class="fas fa-arrow-right btn-icon"></i>
+              السؤال التالي
+            </span>
+            <div class="btn-shine"></div>
+          </button>
+
+          <!-- Authentication Section -->
+          @if (!isAuthenticated()) {
+          <div class="auth-section">
+            <p class="auth-prompt" dir="rtl">
+              سجل دخولك لحفظ نتائجك في لوحة الشرف
+            </p>
+            <button
+              class="login-btn enhanced"
+              (click)="signInWithGoogle()"
+              [disabled]="authLoading()"
+              dir="rtl"
+            >
+              <span class="btn-bg"></span>
+              <span class="btn-content">
+                @if (authLoading()) {
+                <i class="fas fa-spinner fa-spin btn-icon"></i>
+                جاري تسجيل الدخول... } @else {
+                <i class="fab fa-google btn-icon"></i>
+                تسجيل الدخول بـ Google }
+              </span>
+              <div class="btn-shine"></div>
+            </button>
+          </div>
+          } @else {
+          <div class="user-section">
+            <div class="user-card" dir="rtl">
+              <div class="user-avatar">
+                @if (currentUser()?.photoURL) {
+                <img
+                  [src]="currentUser()!.photoURL"
+                  [alt]="currentUser()!.displayName"
+                  class="avatar-img"
+                />
+                } @else {
+                <div class="avatar-placeholder">
+                  <i class="fas fa-user"></i>
+                </div>
+                }
+              </div>
+              <div class="user-info">
+                <span class="user-name">{{ currentUser()?.displayName }}</span>
+                <span class="user-stats"
+                  >أعلى نتيجة: {{ currentUser()?.highestScore }}</span
+                >
+              </div>
+              <button
+                class="leaderboard-btn"
+                (click)="viewLeaderboard()"
+                title="لوحة الشرف"
+              >
+                <i class="fas fa-trophy"></i>
+              </button>
+            </div>
+          </div>
+          } }
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Enhanced Game Controls -->
+  <div class="game-controls-enhanced">
+    <div class="controls-ornament"></div>
+    <button class="new-game-btn enhanced" (click)="startNewGame()" dir="rtl">
+      <div class="btn-background">
+        <div class="btn-pattern"></div>
+        <div class="btn-glow-effect"></div>
+      </div>
+      <span class="btn-content">
+        <ion-icon name="game-controller" class="btn-icon"></ion-icon>
+        <span class="btn-text">لعبة جديدة</span>
+        <i class="fas fa-bolt btn-arrow"></i>
+      </span>
+    </button>
+    <div class="controls-ornament"></div>
+  </div>
+</div>

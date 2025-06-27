@@ -1,2 +1,71 @@
 // For information on how to create your own theme, please see:
 // http://ionicframework.com/docs/theming/
+
+// Islamic-themed Gaming Color Palette
+:root {
+  // Primary Islamic Colors
+  --islamic-gold: #ffd700;
+  --islamic-green: #22c55e;
+  --islamic-blue: #1e3a8a;
+  --islamic-purple: #8b5cf6;
+  --islamic-dark: #0f172a;
+
+  // Gaming Background Colors
+  --gaming-dark-bg: #0a0a23;
+  --gaming-purple-bg: #1e1b4b;
+  --gaming-blue-bg: #312e81;
+  --gaming-cosmic-bg: #0f0728;
+
+  // Glass Morphism Effects
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-backdrop: blur(15px);
+
+  // Glow Effects
+  --glow-gold: rgba(255, 215, 0, 0.3);
+  --glow-green: rgba(34, 197, 94, 0.3);
+  --glow-purple: rgba(139, 92, 246, 0.3);
+
+  // Text Colors
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.9);
+  --text-accent: #ffd700;
+
+  // Override Ionic Colors
+  --ion-color-primary: #ffd700;
+  --ion-color-primary-rgb: 255, 215, 0;
+  --ion-color-primary-contrast: #0f172a;
+  --ion-color-primary-contrast-rgb: 15, 23, 42;
+  --ion-color-primary-shade: #e6c200;
+  --ion-color-primary-tint: #ffdb1a;
+
+  --ion-color-secondary: #22c55e;
+  --ion-color-secondary-rgb: 34, 197, 94;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #1eb854;
+  --ion-color-secondary-tint: #38d973;
+
+  --ion-color-tertiary: #8b5cf6;
+  --ion-color-tertiary-rgb: 139, 92, 246;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #7a51d8;
+  --ion-color-tertiary-tint: #976df7;
+
+  --ion-background-color: var(--gaming-dark-bg);
+  --ion-background-color-rgb: 10, 10, 35;
+
+  --ion-text-color: var(--text-primary);
+  --ion-text-color-rgb: 255, 255, 255;
+}
+
+// Dark theme enhancements
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-color-primary-shade: #ffd700;
+    --ion-color-primary-tint: #fff066;
+    --ion-color-secondary-shade: #22c55e;
+    --ion-color-secondary-tint: #4ade80;
+  }
+}

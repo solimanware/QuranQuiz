@@ -1,0 +1,283 @@
+<div class="leaderboard-container">
+  <!-- Islamic pattern background overlay -->
+  <div class="islamic-pattern-overlay"></div>
+
+  <!-- Cosmic particles and glow effects -->
+  <div class="cosmic-particles"></div>
+  <div class="glow-border"></div>
+
+  <!-- Navigation Header -->
+  <nav class="leaderboard-nav">
+    <button class="nav-btn back-btn" (click)="goBack()" dir="rtl">
+      <ion-icon name="arrow-back" class="btn-icon"></ion-icon>
+      <div class="btn-glow"></div>
+    </button>
+
+    <div class="nav-brand">
+      <div class="brand-ornament">
+        <div class="ornament-circle"></div>
+        <ion-icon name="trophy" class="brand-icon"></ion-icon>
+        <div class="ornament-circle"></div>
+      </div>
+      <span class="brand-text" dir="rtl">لوحة الشرف</span>
+      <div class="brand-underline"></div>
+    </div>
+
+    <button class="nav-btn refresh-btn" (click)="refresh()">
+      <ion-icon name="refresh" class="btn-icon"></ion-icon>
+      <div class="btn-glow"></div>
+    </button>
+  </nav>
+
+  <!-- User Rank Card (if authenticated) -->
+  @if (isAuthenticated() && userRank()) {
+  <div class="user-rank-card">
+    <div class="rank-shrine">
+      <div class="shrine-header">
+        <div class="header-ornament"></div>
+        <span class="rank-title" dir="rtl">ترتيبك الحالي</span>
+        <div class="header-ornament"></div>
+      </div>
+      <div class="rank-content">
+        <div class="rank-badge">
+          <ion-icon
+            [name]="getRankIcon(userRank()!)"
+            [class]="getRankClass(userRank()!)"
+          ></ion-icon>
+          <span class="rank-number">{{ userRank() }}</span>
+        </div>
+        <div class="user-info" dir="rtl">
+          <span class="user-name">{{ currentUser()?.displayName }}</span>
+          <span class="user-score"
+            >أعلى نتيجة: {{ currentUser()?.highestScore }}</span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Tab Selector -->
+  <div class="tab-selector">
+    <div class="tab-container">
+      <button
+        class="tab-btn"
+        [class.active]="selectedTab() === 'all-time'"
+        (click)="switchTab('all-time')"
+        dir="rtl"
+      >
+        <span>كل الأوقات</span>
+        <div class="tab-indicator"></div>
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="selectedTab() === 'today'"
+        (click)="switchTab('today')"
+        dir="rtl"
+      >
+        <span>اليوم</span>
+        <div class="tab-indicator"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+  <div class="loading-container">
+    <div class="loading-shrine">
+      <div class="loading-spinner-enhanced">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <ion-icon name="trophy" class="trophy-icon"></ion-icon>
+      </div>
+    </div>
+    <p class="loading-text" dir="rtl">
+      <i class="fas fa-star loading-icon"></i>
+      جاري تحميل لوحة الشرف...
+      <i class="fas fa-star loading-icon"></i>
+    </p>
+  </div>
+  }
+
+  <!-- Leaderboard Content -->
+  @if (!isLoading()) {
+  <div class="leaderboard-content">
+    @if (selectedTab() === 'all-time') {
+    <div class="leaderboard-section">
+      <div class="section-header" dir="rtl">
+        <i class="fas fa-crown section-icon"></i>
+        أفضل اللاعبين على الإطلاق
+        <i class="fas fa-crown section-icon"></i>
+      </div>
+
+      @if (leaderboard().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="trophy" class="empty-icon"></ion-icon>
+        <p dir="rtl">لا توجد نتائج بعد. كن أول من يلعب!</p>
+      </div>
+      } @else {
+      <div class="leaderboard-list">
+        @for (entry of leaderboard(); track entry.uid) {
+        <div
+          class="leaderboard-entry"
+          [class.current-user]="isCurrentUser(entry)"
+          [class]="getRankClass(entry.rank!)"
+        >
+          <div class="entry-rank">
+            <div class="rank-badge">
+              <ion-icon
+                [name]="getRankIcon(entry.rank!)"
+                class="rank-icon"
+              ></ion-icon>
+              <span class="rank-number">{{ entry.rank }}</span>
+            </div>
+          </div>
+
+          <div class="entry-avatar">
+            @if (entry.photoURL) {
+            <img
+              [src]="entry.photoURL"
+              [alt]="entry.displayName"
+              class="avatar-img"
+            />
+            } @else {
+            <div class="avatar-placeholder">
+              <ion-icon name="person" class="avatar-icon"></ion-icon>
+            </div>
+            }
+          </div>
+
+          <div class="entry-info" dir="rtl">
+            <div class="info-main">
+              <span class="player-name">{{ entry.displayName }}</span>
+              <span class="player-level">المستوى {{ entry.level }}</span>
+            </div>
+            <div class="info-stats">
+              <span class="stat-item">
+                <i class="fas fa-gem"></i>
+                {{ entry.highestScore }}
+              </span>
+              <span class="stat-item">
+                <i class="fas fa-percentage"></i>
+                {{ entry.accuracy }}%
+              </span>
+              <span class="stat-item">
+                <i class="fas fa-gamepad"></i>
+                {{ entry.totalGamesPlayed }}
+              </span>
+            </div>
+          </div>
+
+          <div class="entry-xp">
+            <span class="xp-value">{{ entry.xp }}</span>
+            <span class="xp-label" dir="rtl">نقطة خبرة</span>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+    } @else {
+    <div class="leaderboard-section">
+      <div class="section-header" dir="rtl">
+        <i class="fas fa-calendar-day section-icon"></i>
+        أفضل نتائج اليوم
+        <i class="fas fa-calendar-day section-icon"></i>
+      </div>
+
+      @if (todaysLeaderboard().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="medal" class="empty-icon"></ion-icon>
+        <p dir="rtl">لا توجد ألعاب اليوم بعد. ابدأ اللعب الآن!</p>
+      </div>
+      } @else {
+      <div class="leaderboard-list">
+        @for (entry of todaysLeaderboard(); track entry.uid) {
+        <div
+          class="leaderboard-entry"
+          [class.current-user]="isCurrentUser(entry)"
+          [class]="getRankClass(entry.rank!)"
+        >
+          <div class="entry-rank">
+            <div class="rank-badge">
+              <ion-icon
+                [name]="getRankIcon(entry.rank!)"
+                class="rank-icon"
+              ></ion-icon>
+              <span class="rank-number">{{ entry.rank }}</span>
+            </div>
+          </div>
+
+          <div class="entry-avatar">
+            @if (entry.photoURL) {
+            <img
+              [src]="entry.photoURL"
+              [alt]="entry.displayName"
+              class="avatar-img"
+            />
+            } @else {
+            <div class="avatar-placeholder">
+              <ion-icon name="person" class="avatar-icon"></ion-icon>
+            </div>
+            }
+          </div>
+
+          <div class="entry-info" dir="rtl">
+            <div class="info-main">
+              <span class="player-name">{{ entry.displayName }}</span>
+              <span class="player-time">{{
+                formatDate(entry.lastActiveAt)
+              }}</span>
+            </div>
+            <div class="info-stats">
+              <span class="stat-item">
+                <i class="fas fa-gem"></i>
+                {{ entry.highestScore }}
+              </span>
+              <span class="stat-item">
+                <i class="fas fa-percentage"></i>
+                {{ entry.accuracy }}%
+              </span>
+            </div>
+          </div>
+
+          <div class="entry-badge">
+            <i class="fas fa-fire"></i>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Authentication Prompt -->
+  @if (!isAuthenticated()) {
+  <div class="auth-prompt">
+    <div class="prompt-shrine">
+      <div class="shrine-content">
+        <ion-icon name="trophy" class="prompt-icon"></ion-icon>
+        <h3 dir="rtl">سجل دخولك للمنافسة</h3>
+        <p dir="rtl">
+          سجل دخولك بحساب Google لحفظ نتائجك والظهور في لوحة الشرف
+        </p>
+        <button
+          class="login-btn enhanced"
+          (click)="signInWithGoogle()"
+          dir="rtl"
+        >
+          <span class="btn-bg"></span>
+          <span class="btn-content">
+            <i class="fab fa-google btn-icon"></i>
+            تسجيل الدخول بـ Google
+          </span>
+          <div class="btn-shine"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

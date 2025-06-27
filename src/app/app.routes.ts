@@ -1,13 +1,19 @@
 import { Routes } from '@angular/router';
+import { LeaderboardComponent } from './components/leaderboard/leaderboard.component';
+import { QuizGameComponent } from './components/quiz-game/quiz-game.component';
 
 export const routes: Routes = [
   {
-    path: 'home',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+    path: '',
+    redirectTo: '/quiz',
+    pathMatch: 'full',
   },
   {
-    path: '',
-    redirectTo: 'home',
-    pathMatch: 'full',
+    path: 'quiz',
+    component: QuizGameComponent,
+  },
+  {
+    path: 'leaderboard',
+    component: LeaderboardComponent,
   },
 ];
