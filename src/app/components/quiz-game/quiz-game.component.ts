@@ -3,12 +3,14 @@ import {
   Component,
   computed,
   CUSTOM_ELEMENTS_SCHEMA,
+  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 // Removed ionicons imports - using Font Awesome instead
+import { AnalyticsService } from '../../services/analytics.service';
 import { AudioService } from '../../services/audio.service';
 import { AuthService } from '../../services/auth.service';
 import { LeaderboardService } from '../../services/leaderboard.service';
@@ -25,7 +27,7 @@ import { QuizQuestion, Surah } from '../../types/quiz.types';
   templateUrl: './quiz-game.component.html',
   styleUrls: ['./quiz-game.component.scss'],
 })
-export class QuizGameComponent implements OnInit {
+export class QuizGameComponent implements OnInit, OnDestroy {
   currentQuestion = signal<QuizQuestion | null>(null);
   selectedOption = signal<Surah | null>(null);
   showResult = signal<boolean>(false);
@@ -34,10 +36,12 @@ export class QuizGameComponent implements OnInit {
   gameCompleted = signal<boolean>(false);
   questionsRemaining = signal<number>(10);
   gameStartTime = signal<number>(0);
+  sessionStartTime = signal<number>(0);
+  questionStartTime = signal<number>(0);
 
   gameStats = computed(() => this.quizService.getGameStats()());
   accuracy = computed(() => this.quizService.getAccuracy());
-  userProgress = computed(() => this.progressService.getProgress()());
+  userProgress = computed(() => this.progressService.getProgress());
 
   // Preloading status
   queueSize = computed(() => this.quizService.getQueueSize());
@@ -59,16 +63,26 @@ export class QuizGameComponent implements OnInit {
     private authService: AuthService,
     private leaderboardService: LeaderboardService,
     private audioService: AudioService,
+    private analytics: AnalyticsService,
     private router: Router
   ) {
     // Font Awesome icons are used instead of Ionic icons
   }
 
   ngOnInit(): void {
+    this.sessionStartTime.set(Date.now());
+
     // Start preloading questions immediately for faster game experience
     this.quizService.startNewGame();
     this.gameStartTime.set(Date.now());
+    this.analytics.trackQuizStarted('standard');
     this.startNewQuestion();
+  }
+
+  ngOnDestroy(): void {
+    // Track session duration when component is destroyed
+    const sessionDuration = Date.now() - this.sessionStartTime();
+    this.analytics.trackSessionDuration(sessionDuration);
   }
 
   enToAr(str: number): string {
@@ -80,6 +94,8 @@ export class QuizGameComponent implements OnInit {
       this.completeGame();
       return;
     }
+
+    this.questionStartTime.set(Date.now());
 
     // Only show loading if no preloaded question is available
     const hasNext = this.hasNextReady();
@@ -97,6 +113,11 @@ export class QuizGameComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error generating question:', error);
+        this.analytics.trackError(
+          'quiz',
+          'question_generation_failed',
+          error.message
+        );
         this.isLoading.set(false);
       },
     });
@@ -104,6 +125,11 @@ export class QuizGameComponent implements OnInit {
 
   selectOption(option: Surah): void {
     if (this.showResult()) return;
+
+    // Calculate time to answer
+    const timeToAnswer = Date.now() - this.questionStartTime();
+    const questionNumber = 11 - this.questionsRemaining();
+    const stats = this.gameStats();
 
     // Play button click sound
     this.soundService.playButtonClick();
@@ -113,12 +139,16 @@ export class QuizGameComponent implements OnInit {
     this.isCorrect.set(correct);
     this.showResult.set(true);
 
+    // Track answer selection
+    this.analytics.trackAnswerSelected(correct, questionNumber, timeToAnswer);
+
     // Play appropriate sound effect
     if (correct) {
       this.soundService.playCorrect();
+      this.analytics.trackCorrectAnswer(stats.streakCount + 1, questionNumber);
 
       // Check if it's a streak milestone for level up sound
-      const currentStreak = this.gameStats().streakCount;
+      const currentStreak = stats.streakCount + 1;
       if (currentStreak > 0 && currentStreak % 5 === 0) {
         setTimeout(() => {
           this.soundService.playLevelUp();
@@ -126,14 +156,27 @@ export class QuizGameComponent implements OnInit {
       }
     } else {
       this.soundService.playIncorrect();
+      const currentQuestion = this.currentQuestion();
+      if (currentQuestion) {
+        this.analytics.trackIncorrectAnswer(
+          currentQuestion.correctSurah.name,
+          option.name,
+          questionNumber
+        );
+      }
 
       // Save current score if it's higher than previous highest score (for authenticated users)
       if (this.isAuthenticated()) {
-        const currentScore = this.gameStats().score;
+        const currentScore = stats.score;
         this.authService
           .updateHighestScoreIfBetter(currentScore)
           .catch((error) => {
             console.error('Failed to update highest score:', error);
+            this.analytics.trackError(
+              'quiz',
+              'update_high_score_failed',
+              error.message
+            );
           });
       }
     }
@@ -160,6 +203,17 @@ export class QuizGameComponent implements OnInit {
 
     // Play game over sound
     this.soundService.playGameOver();
+
+    // Track quiz completion
+    this.analytics.trackQuizCompleted({
+      score: stats.score,
+      correctAnswers: stats.correctAnswers,
+      totalQuestions: stats.totalQuestions,
+      accuracy: Math.round((stats.correctAnswers / stats.totalQuestions) * 100),
+      streakCount: stats.streakCount,
+      duration: gameDuration,
+      gameMode: 'standard',
+    });
 
     // Update progress with game results
     this.progressService.updateProgress({
@@ -196,6 +250,11 @@ export class QuizGameComponent implements OnInit {
         }
       } catch (error) {
         console.error('Error recording game stats:', error);
+        this.analytics.trackError(
+          'quiz',
+          'record_game_stats_failed',
+          error instanceof Error ? error.message : 'Unknown error'
+        );
       }
     }
 
@@ -224,6 +283,7 @@ export class QuizGameComponent implements OnInit {
   startNewGame(): void {
     // Play button click sound
     this.soundService.playButtonClick();
+    this.analytics.trackNewGameStarted();
 
     // Stop any playing ayah audio
     this.stopAyahAudio();
@@ -232,6 +292,7 @@ export class QuizGameComponent implements OnInit {
     this.gameCompleted.set(false);
     this.questionsRemaining.set(10);
     this.gameStartTime.set(Date.now());
+    this.analytics.trackQuizStarted('standard');
     this.startNewQuestion();
   }
 
@@ -278,7 +339,9 @@ export class QuizGameComponent implements OnInit {
   }
 
   toggleSound(): void {
+    const newSoundState = !this.soundEnabled();
     this.soundService.toggleSound();
+    this.analytics.trackSoundToggle(newSoundState);
   }
 
   isSoundEnabled(): boolean {
@@ -288,6 +351,11 @@ export class QuizGameComponent implements OnInit {
   async playAyahAudio(ayahNumber: number): Promise<void> {
     if (!this.audioService.isAudioDataLoaded()) {
       console.warn('Audio data not loaded yet');
+      this.analytics.trackError(
+        'audio',
+        'audio_data_not_loaded',
+        'Ayah audio data not available'
+      );
       return;
     }
 
@@ -296,14 +364,24 @@ export class QuizGameComponent implements OnInit {
 
     if (audioUrl) {
       try {
+        this.analytics.trackAyahAudioPlay(ayahNumber);
         await this.soundService.playAyahAudio(audioUrl, fallbackUrls);
       } catch (error) {
         console.warn('Failed to play ayah audio:', error);
+        this.analytics.trackError(
+          'audio',
+          'ayah_audio_play_failed',
+          error instanceof Error ? error.message : 'Unknown error'
+        );
       }
     }
   }
 
   stopAyahAudio(): void {
+    const currentQuestion = this.currentQuestion();
+    if (currentQuestion) {
+      this.analytics.trackAyahAudioStop(currentQuestion.ayah.number);
+    }
     this.soundService.stopAyahAudio();
   }
 

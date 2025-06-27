@@ -1,17 +1,6 @@
 import { Injectable, signal } from '@angular/core';
-import { Badge, UserProgress } from '../types/quiz.types';
-
-export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  requirement: (progress: UserProgress) => boolean;
-  reward: {
-    xp: number;
-    badge?: Badge;
-  };
-}
+import { Achievement, UserProgress } from '../types/quiz.types';
+import { AnalyticsService } from './analytics.service';
 
 @Injectable({
   providedIn: 'root',
@@ -79,7 +68,7 @@ export class ProgressService {
     averageAccuracy: 0,
   });
 
-  constructor() {
+  constructor(private analytics: AnalyticsService) {
     this.loadProgress();
   }
 
@@ -108,7 +97,14 @@ export class ProgressService {
     };
 
     // Calculate new level
+    const previousLevel = current.level;
     updated.level = this.calculateLevel(updated.totalXP);
+
+    // Track level up if level increased
+    if (updated.level > previousLevel) {
+      const xpGained = this.calculateXP(gameData);
+      this.analytics.trackLevelUp(updated.level, xpGained);
+    }
 
     this.progress.set(updated);
     this.saveProgress();
@@ -120,9 +116,11 @@ export class ProgressService {
     totalQuestions: number;
     streak: number;
   }): number {
-    let xp = gameData.correctAnswers * 10;
-    if (gameData.streak > 3) xp += gameData.streak * 5;
-    return xp;
+    const baseXP = gameData.correctAnswers * 10;
+    const streakBonus = gameData.streak * 5;
+    const accuracyBonus =
+      gameData.correctAnswers === gameData.totalQuestions ? 50 : 0;
+    return baseXP + streakBonus + accuracyBonus;
   }
 
   private calculateLevel(totalXP: number): number {
@@ -130,19 +128,16 @@ export class ProgressService {
   }
 
   private calculateAverageAccuracy(
-    correctAnswers: number,
+    totalCorrect: number,
     totalQuestions: number
   ): number {
     return totalQuestions > 0
-      ? Math.round((correctAnswers / totalQuestions) * 100)
+      ? Math.round((totalCorrect / totalQuestions) * 100)
       : 0;
   }
 
   private checkAchievements(progress: UserProgress): void {
-    let updated = false;
-    const achievements = [...progress.achievements];
-
-    achievements.forEach((achievement) => {
+    progress.achievements.forEach((achievement) => {
       if (!achievement.unlocked) {
         let shouldUnlock = false;
 
@@ -163,22 +158,53 @@ export class ProgressService {
 
         if (shouldUnlock) {
           achievement.unlocked = true;
-          achievement.unlockedAt = Date.now();
-          updated = true;
+          this.analytics.trackAchievementUnlocked(
+            achievement.id,
+            achievement.name
+          );
+          console.log(`🏆 Achievement unlocked: ${achievement.name}!`);
         }
       }
     });
+  }
 
-    if (updated) {
-      this.progress.set({ ...progress, achievements });
-      this.saveProgress();
+  private loadProgress(): void {
+    try {
+      const saved = localStorage.getItem(this.STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved) as UserProgress;
+        this.progress.set(data);
+      }
+    } catch (error) {
+      console.error('Error loading progress:', error);
+      this.analytics.trackError(
+        'progress',
+        'load_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
     }
   }
 
-  getProgress() {
-    return this.progress;
+  // Get current progress
+  getProgress(): UserProgress {
+    return this.progress();
   }
 
+  // Get specific achievement
+  getAchievement(id: string): Achievement | undefined {
+    return this.progress().achievements.find(
+      (achievement) => achievement.id === id
+    );
+  }
+
+  // Get unlocked achievements
+  getUnlockedAchievements(): Achievement[] {
+    return this.progress().achievements.filter(
+      (achievement) => achievement.unlocked
+    );
+  }
+
+  // Reset all progress
   resetProgress(): void {
     const defaultProgress: UserProgress = {
       totalGamesPlayed: 0,
@@ -242,18 +268,14 @@ export class ProgressService {
 
     this.progress.set(defaultProgress);
     localStorage.removeItem(this.STORAGE_KEY);
+    this.analytics.trackCustomEvent('progress_reset', {
+      timestamp: Date.now(),
+    });
   }
 
-  private loadProgress(): void {
-    try {
-      const saved = localStorage.getItem(this.STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        this.progress.set(parsed);
-      }
-    } catch (error) {
-      console.error('Error loading progress:', error);
-    }
+  // Export progress data
+  exportProgress(): UserProgress {
+    return this.progress();
   }
 
   private saveProgress(): void {
@@ -261,6 +283,11 @@ export class ProgressService {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.progress()));
     } catch (error) {
       console.error('Error saving progress:', error);
+      this.analytics.trackError(
+        'progress',
+        'save_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
     }
   }
 }

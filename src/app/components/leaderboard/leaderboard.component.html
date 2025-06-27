@@ -62,7 +62,7 @@
       <button
         class="tab-btn"
         [class.active]="selectedTab() === 'all-time'"
-        (click)="switchTab('all-time')"
+        (click)="selectTab('all-time')"
         dir="rtl"
       >
         <span>كل الأوقات</span>
@@ -71,7 +71,7 @@
       <button
         class="tab-btn"
         [class.active]="selectedTab() === 'today'"
-        (click)="switchTab('today')"
+        (click)="selectTab('today')"
         dir="rtl"
       >
         <span>اليوم</span>

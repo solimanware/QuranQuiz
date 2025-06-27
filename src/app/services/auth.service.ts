@@ -15,6 +15,7 @@ import {
   updateDoc,
 } from '@angular/fire/firestore';
 import { AppUser } from '../types/quiz.types';
+import { AnalyticsService } from './analytics.service';
 
 @Injectable({
   providedIn: 'root',
@@ -28,13 +29,18 @@ export class AuthService {
   user = computed(() => this.currentUser());
   loading = computed(() => this.isLoading());
 
-  constructor(private auth: Auth, private firestore: Firestore) {
+  constructor(
+    private auth: Auth,
+    private firestore: Firestore,
+    private analytics: AnalyticsService
+  ) {
     // Listen to auth state changes
     user(this.auth).subscribe(async (firebaseUser) => {
       if (firebaseUser) {
         await this.loadUserData(firebaseUser);
       } else {
         this.currentUser.set(null);
+        this.analytics.clearUser();
       }
     });
   }
@@ -42,6 +48,8 @@ export class AuthService {
   async signInWithGoogle(): Promise<void> {
     try {
       this.isLoading.set(true);
+      this.analytics.trackLoginAttempt('google');
+
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
@@ -50,10 +58,12 @@ export class AuthService {
       const user = result.user;
 
       if (user) {
-        await this.createOrUpdateUser(user);
+        const isNewUser = await this.createOrUpdateUser(user);
+        this.analytics.trackLoginSuccess('google', isNewUser);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing in with Google:', error);
+      this.analytics.trackLoginFailure('google', error.code || 'unknown_error');
       throw error;
     } finally {
       this.isLoading.set(false);
@@ -62,15 +72,22 @@ export class AuthService {
 
   async signOut(): Promise<void> {
     try {
+      this.analytics.trackLogout();
       await signOut(this.auth);
       this.currentUser.set(null);
+      this.analytics.clearUser();
     } catch (error) {
       console.error('Error signing out:', error);
+      this.analytics.trackError(
+        'auth',
+        'signout_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       throw error;
     }
   }
 
-  private async createOrUpdateUser(firebaseUser: User): Promise<void> {
+  private async createOrUpdateUser(firebaseUser: User): Promise<boolean> {
     const userRef = doc(this.firestore, 'users', firebaseUser.uid);
     const userDoc = await getDoc(userRef);
 
@@ -83,8 +100,11 @@ export class AuthService {
       lastLoginAt: now,
     };
 
+    let isNewUser = false;
+
     if (!userDoc.exists()) {
       // Create new user
+      isNewUser = true;
       const newUser: AppUser = {
         ...(userData as AppUser),
         createdAt: now,
@@ -98,11 +118,20 @@ export class AuthService {
       };
       await setDoc(userRef, newUser);
       this.currentUser.set(newUser);
+
+      // Set analytics user properties for new user
+      this.analytics.setUser(newUser.uid, {
+        userLevel: newUser.level,
+        totalGamesPlayed: newUser.totalGamesPlayed,
+        highestScore: newUser.highestScore,
+      });
     } else {
       // Update existing user
       await updateDoc(userRef, userData);
       await this.loadUserData(firebaseUser);
     }
+
+    return isNewUser;
   }
 
   private async loadUserData(firebaseUser: User): Promise<void> {
@@ -111,10 +140,23 @@ export class AuthService {
       const userDoc = await getDoc(userRef);
 
       if (userDoc.exists()) {
-        this.currentUser.set(userDoc.data() as AppUser);
+        const userData = userDoc.data() as AppUser;
+        this.currentUser.set(userData);
+
+        // Update analytics user properties
+        this.analytics.setUser(userData.uid, {
+          userLevel: userData.level,
+          totalGamesPlayed: userData.totalGamesPlayed,
+          highestScore: userData.highestScore,
+        });
       }
     } catch (error) {
       console.error('Error loading user data:', error);
+      this.analytics.trackError(
+        'auth',
+        'load_user_data_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
     }
   }
 
@@ -129,6 +171,8 @@ export class AuthService {
 
     try {
       const userRef = doc(this.firestore, 'users', currentUser.uid);
+      const previousHighScore = currentUser.highestScore;
+      const previousLevel = currentUser.level;
 
       const updates: Partial<AppUser> = {
         totalGamesPlayed: currentUser.totalGamesPlayed + 1,
@@ -141,6 +185,7 @@ export class AuthService {
       // Update highest score if current score is higher
       if (stats.score > currentUser.highestScore) {
         updates.highestScore = stats.score;
+        this.analytics.trackHighScoreAchieved(stats.score, previousHighScore);
       }
 
       // Update best streak if current streak is higher
@@ -153,15 +198,33 @@ export class AuthService {
       updates.xp = currentUser.xp + xpGained;
       updates.level = Math.floor(updates.xp / 100) + 1;
 
+      // Track level up
+      if (updates.level > previousLevel) {
+        this.analytics.trackLevelUp(updates.level, xpGained);
+      }
+
       await updateDoc(userRef, updates);
 
       // Update local state
-      this.currentUser.set({
+      const updatedUser = {
         ...currentUser,
         ...updates,
+      };
+      this.currentUser.set(updatedUser);
+
+      // Update analytics user properties
+      this.analytics.setUser(updatedUser.uid, {
+        userLevel: updatedUser.level,
+        totalGamesPlayed: updatedUser.totalGamesPlayed,
+        highestScore: updatedUser.highestScore,
       });
     } catch (error) {
       console.error('Error updating user stats:', error);
+      this.analytics.trackError(
+        'auth',
+        'update_user_stats_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       throw error;
     }
   }
@@ -176,6 +239,7 @@ export class AuthService {
 
     try {
       const userRef = doc(this.firestore, 'users', currentUser.uid);
+      const previousHighScore = currentUser.highestScore;
 
       const updates: Partial<AppUser> = {
         highestScore: currentScore,
@@ -185,9 +249,20 @@ export class AuthService {
       await updateDoc(userRef, updates);
 
       // Update local state
-      this.currentUser.set({
+      const updatedUser = {
         ...currentUser,
         ...updates,
+      };
+      this.currentUser.set(updatedUser);
+
+      // Track high score achievement
+      this.analytics.trackHighScoreAchieved(currentScore, previousHighScore);
+
+      // Update analytics user properties
+      this.analytics.setUser(updatedUser.uid, {
+        userLevel: updatedUser.level,
+        totalGamesPlayed: updatedUser.totalGamesPlayed,
+        highestScore: updatedUser.highestScore,
       });
 
       console.log(
@@ -195,6 +270,11 @@ export class AuthService {
       );
     } catch (error) {
       console.error('Error updating highest score:', error);
+      this.analytics.trackError(
+        'auth',
+        'update_highest_score_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
       throw error;
     }
   }

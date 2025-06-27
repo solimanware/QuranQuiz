@@ -61,7 +61,7 @@ export interface UserProgress {
   bestStreak: number;
   totalXP: number;
   level: number;
-  achievements: SimpleAchievement[];
+  achievements: Achievement[];
   dailyStreak: number;
   lastPlayDate: number;
   firstPlayDate: number;

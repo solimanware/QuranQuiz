@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   CUSTOM_ELEMENTS_SCHEMA,
+  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
@@ -10,6 +11,7 @@ import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 // Removed ionicons imports - using Font Awesome instead
 
+import { AnalyticsService } from '../../services/analytics.service';
 import { AuthService } from '../../services/auth.service';
 import { LeaderboardService } from '../../services/leaderboard.service';
 import { LeaderboardEntry } from '../../types/quiz.types';
@@ -22,12 +24,13 @@ import { LeaderboardEntry } from '../../types/quiz.types';
   templateUrl: './leaderboard.component.html',
   styleUrls: ['./leaderboard.component.scss'],
 })
-export class LeaderboardComponent implements OnInit {
+export class LeaderboardComponent implements OnInit, OnDestroy {
   leaderboard = signal<LeaderboardEntry[]>([]);
   todaysLeaderboard = signal<LeaderboardEntry[]>([]);
   userRank = signal<number | null>(null);
   isLoading = signal<boolean>(false);
   selectedTab = signal<'all-time' | 'today'>('all-time');
+  componentLoadTime = signal<number>(0);
 
   currentUser = computed(() => this.authService.user());
   isAuthenticated = computed(() => this.authService.isAuthenticated());
@@ -35,29 +38,62 @@ export class LeaderboardComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private leaderboardService: LeaderboardService,
+    private analytics: AnalyticsService,
     private router: Router
   ) {
     // Font Awesome icons are used instead of Ionic icons
   }
 
   async ngOnInit() {
-    await this.loadLeaderboard();
-    await this.loadTodaysLeaderboard();
+    const loadStartTime = Date.now();
 
-    if (this.isAuthenticated()) {
-      await this.loadUserRank();
+    try {
+      // Track leaderboard view
+      this.analytics.trackLeaderboardView(this.selectedTab());
+
+      await this.loadLeaderboard();
+      await this.loadTodaysLeaderboard();
+
+      if (this.isAuthenticated()) {
+        await this.loadUserRank();
+      }
+
+      // Track load time
+      const loadTime = Date.now() - loadStartTime;
+      this.componentLoadTime.set(loadTime);
+      this.analytics.trackLoadTime('leaderboard', loadTime);
+    } catch (error) {
+      console.error('Error loading leaderboard:', error);
+      this.analytics.trackError(
+        'leaderboard',
+        'load_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Track engagement time on leaderboard
+    if (this.componentLoadTime()) {
+      const engagementTime = Date.now() - this.componentLoadTime();
+      this.analytics.trackUserEngagement(
+        'leaderboard_engagement',
+        engagementTime
+      );
     }
   }
 
   async loadLeaderboard() {
     try {
-      this.isLoading.set(true);
-      const data = await this.leaderboardService.getTopPlayers(20);
+      const data = await this.leaderboardService.getTopPlayers();
       this.leaderboard.set(data);
     } catch (error) {
       console.error('Error loading leaderboard:', error);
-    } finally {
-      this.isLoading.set(false);
+      this.analytics.trackError(
+        'leaderboard',
+        'all_time_load_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
     }
   }
 
@@ -67,44 +103,56 @@ export class LeaderboardComponent implements OnInit {
       this.todaysLeaderboard.set(data);
     } catch (error) {
       console.error("Error loading today's leaderboard:", error);
+      this.analytics.trackError(
+        'leaderboard',
+        'today_load_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
     }
   }
 
   async loadUserRank() {
-    const user = this.currentUser();
-    if (user) {
-      try {
+    try {
+      const user = this.currentUser();
+      if (user) {
         const rank = await this.leaderboardService.getUserRank(user.uid);
         this.userRank.set(rank);
-      } catch (error) {
-        console.error('Error loading user rank:', error);
       }
+    } catch (error) {
+      console.error('Error loading user rank:', error);
+      this.analytics.trackError(
+        'leaderboard',
+        'user_rank_load_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
     }
   }
 
-  switchTab(tab: 'all-time' | 'today') {
+  selectTab(tab: 'all-time' | 'today') {
     this.selectedTab.set(tab);
+    this.analytics.trackLeaderboardView(tab);
   }
 
   async refresh() {
-    if (this.selectedTab() === 'all-time') {
-      await this.loadLeaderboard();
-    } else {
-      await this.loadTodaysLeaderboard();
-    }
+    this.analytics.trackLeaderboardRefresh();
 
-    if (this.isAuthenticated()) {
-      await this.loadUserRank();
-    }
-  }
-
-  async signInWithGoogle(): Promise<void> {
     try {
-      await this.authService.signInWithGoogle();
-      // Reload data after login
-      await this.refresh();
+      this.isLoading.set(true);
+      await this.loadLeaderboard();
+      await this.loadTodaysLeaderboard();
+
+      if (this.isAuthenticated()) {
+        await this.loadUserRank();
+      }
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Error refreshing leaderboard:', error);
+      this.analytics.trackError(
+        'leaderboard',
+        'refresh_failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    } finally {
+      this.isLoading.set(false);
     }
   }
 
@@ -137,17 +185,27 @@ export class LeaderboardComponent implements OnInit {
     }
   }
 
+  isCurrentUser(entry: LeaderboardEntry): boolean {
+    const user = this.currentUser();
+    return user ? user.uid === entry.uid : false;
+  }
+
   formatDate(timestamp: number): string {
-    return new Date(timestamp).toLocaleDateString('ar-SA', {
-      day: 'numeric',
+    return new Date(timestamp).toLocaleString('ar-EG', {
+      year: 'numeric',
       month: 'short',
+      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
   }
 
-  isCurrentUser(entry: LeaderboardEntry): boolean {
-    const user = this.currentUser();
-    return user ? entry.uid === user.uid : false;
+  async signInWithGoogle(): Promise<void> {
+    try {
+      await this.authService.signInWithGoogle();
+      // Analytics tracking is handled in AuthService
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
   }
 }
