@@ -8,8 +8,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { addIcons } from 'ionicons';
-import { arrowBack, medal, refresh, star, trophy } from 'ionicons/icons';
+// Removed ionicons imports - using Font Awesome instead
 
 import { AuthService } from '../../services/auth.service';
 import { LeaderboardService } from '../../services/leaderboard.service';
@@ -38,13 +37,7 @@ export class LeaderboardComponent implements OnInit {
     private leaderboardService: LeaderboardService,
     private router: Router
   ) {
-    addIcons({
-      trophy,
-      medal,
-      star,
-      'arrow-back': arrowBack,
-      refresh,
-    });
+    // Font Awesome icons are used instead of Ionic icons
   }
 
   async ngOnInit() {
@@ -122,12 +115,12 @@ export class LeaderboardComponent implements OnInit {
   getRankIcon(rank: number): string {
     switch (rank) {
       case 1:
-        return 'trophy';
+        return 'fas fa-trophy';
       case 2:
       case 3:
-        return 'medal';
+        return 'fas fa-medal';
       default:
-        return 'star';
+        return 'fas fa-star';
     }
   }
 

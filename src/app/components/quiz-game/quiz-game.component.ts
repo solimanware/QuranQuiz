@@ -8,17 +8,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { addIcons } from 'ionicons';
-import {
-  book,
-  gameController,
-  home,
-  pause,
-  play,
-  trophy,
-  volumeHigh,
-  volumeMute,
-} from 'ionicons/icons';
+// Removed ionicons imports - using Font Awesome instead
 import { AudioService } from '../../services/audio.service';
 import { AuthService } from '../../services/auth.service';
 import { LeaderboardService } from '../../services/leaderboard.service';
@@ -71,17 +61,7 @@ export class QuizGameComponent implements OnInit {
     private audioService: AudioService,
     private router: Router
   ) {
-    // Register icons for Ionic
-    addIcons({
-      home,
-      book,
-      trophy,
-      'volume-high': volumeHigh,
-      'volume-mute': volumeMute,
-      'game-controller': gameController,
-      play,
-      pause,
-    });
+    // Font Awesome icons are used instead of Ionic icons
   }
 
   ngOnInit(): void {

@@ -37,14 +37,14 @@
       (click)="viewLeaderboard()"
       title="لوحة الشرف"
     >
-      <ion-icon name="trophy" class="btn-icon"></ion-icon>
+      <i class="fas fa-trophy btn-icon"></i>
       <div class="btn-glow"></div>
     </button>
 
     <div class="quiz-brand">
       <div class="brand-ornament">
         <div class="ornament-circle"></div>
-        <ion-icon name="book" class="brand-icon"></ion-icon>
+        <i class="fas fa-quran brand-icon"></i>
         <div class="ornament-circle"></div>
       </div>
       <span class="brand-text" dir="rtl">مسابقة القرآن الكريم</span>
@@ -58,10 +58,13 @@
         [class.sound-off]="!soundEnabled()"
         title="{{ soundEnabled() ? 'إيقاف الصوت' : 'تشغيل الصوت' }}"
       >
-        <ion-icon
-          [name]="soundEnabled() ? 'volume-high' : 'volume-mute'"
-          class="btn-icon"
-        ></ion-icon>
+        <i
+          [class]="
+            soundEnabled()
+              ? 'fas fa-volume-up btn-icon'
+              : 'fas fa-volume-mute btn-icon'
+          "
+        ></i>
         <div class="btn-glow"></div>
       </button>
     </div>
@@ -122,7 +125,7 @@
           <div class="spinner-ring"></div>
           <div class="spinner-ring"></div>
           <div class="spinner-ring"></div>
-          <ion-icon name="book" class="quran-icon"></ion-icon>
+          <i class="fas fa-quran quran-icon"></i>
         </div>
         <div class="loading-particles">
           <div class="particle"></div>
@@ -414,7 +417,7 @@
         <div class="btn-glow-effect"></div>
       </div>
       <span class="btn-content">
-        <ion-icon name="game-controller" class="btn-icon"></ion-icon>
+        <i class="fas fa-gamepad btn-icon"></i>
         <span class="btn-text">لعبة جديدة</span>
         <i class="fas fa-bolt btn-arrow"></i>
       </span>

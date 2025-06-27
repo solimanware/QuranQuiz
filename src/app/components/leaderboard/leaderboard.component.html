@@ -9,14 +9,14 @@
   <!-- Navigation Header -->
   <nav class="leaderboard-nav">
     <button class="nav-btn back-btn" (click)="goBack()" dir="rtl">
-      <ion-icon name="arrow-back" class="btn-icon"></ion-icon>
+      <i class="fas fa-arrow-right btn-icon"></i>
       <div class="btn-glow"></div>
     </button>
 
     <div class="nav-brand">
       <div class="brand-ornament">
         <div class="ornament-circle"></div>
-        <ion-icon name="trophy" class="brand-icon"></ion-icon>
+        <i class="fas fa-trophy brand-icon"></i>
         <div class="ornament-circle"></div>
       </div>
       <span class="brand-text" dir="rtl">لوحة الشرف</span>
@@ -24,7 +24,7 @@
     </div>
 
     <button class="nav-btn refresh-btn" (click)="refresh()">
-      <ion-icon name="refresh" class="btn-icon"></ion-icon>
+      <i class="fas fa-sync-alt btn-icon"></i>
       <div class="btn-glow"></div>
     </button>
   </nav>
@@ -40,10 +40,9 @@
       </div>
       <div class="rank-content">
         <div class="rank-badge">
-          <ion-icon
-            [name]="getRankIcon(userRank()!)"
-            [class]="getRankClass(userRank()!)"
-          ></ion-icon>
+          <i
+            [class]="getRankIcon(userRank()!) + ' ' + getRankClass(userRank()!)"
+          ></i>
           <span class="rank-number">{{ userRank() }}</span>
         </div>
         <div class="user-info" dir="rtl">
@@ -89,7 +88,7 @@
         <div class="spinner-ring"></div>
         <div class="spinner-ring"></div>
         <div class="spinner-ring"></div>
-        <ion-icon name="trophy" class="trophy-icon"></ion-icon>
+        <i class="fas fa-trophy trophy-icon"></i>
       </div>
     </div>
     <p class="loading-text" dir="rtl">
@@ -113,7 +112,7 @@
 
       @if (leaderboard().length === 0) {
       <div class="empty-state">
-        <ion-icon name="trophy" class="empty-icon"></ion-icon>
+        <i class="fas fa-trophy empty-icon"></i>
         <p dir="rtl">لا توجد نتائج بعد. كن أول من يلعب!</p>
       </div>
       } @else {
@@ -126,10 +125,7 @@
         >
           <div class="entry-rank">
             <div class="rank-badge">
-              <ion-icon
-                [name]="getRankIcon(entry.rank!)"
-                class="rank-icon"
-              ></ion-icon>
+              <i [class]="getRankIcon(entry.rank!) + ' rank-icon'"></i>
               <span class="rank-number">{{ entry.rank }}</span>
             </div>
           </div>
@@ -143,7 +139,7 @@
             />
             } @else {
             <div class="avatar-placeholder">
-              <ion-icon name="person" class="avatar-icon"></ion-icon>
+              <i class="fas fa-user avatar-icon"></i>
             </div>
             }
           </div>
@@ -188,7 +184,7 @@
 
       @if (todaysLeaderboard().length === 0) {
       <div class="empty-state">
-        <ion-icon name="medal" class="empty-icon"></ion-icon>
+        <i class="fas fa-medal empty-icon"></i>
         <p dir="rtl">لا توجد ألعاب اليوم بعد. ابدأ اللعب الآن!</p>
       </div>
       } @else {
@@ -201,10 +197,7 @@
         >
           <div class="entry-rank">
             <div class="rank-badge">
-              <ion-icon
-                [name]="getRankIcon(entry.rank!)"
-                class="rank-icon"
-              ></ion-icon>
+              <i [class]="getRankIcon(entry.rank!) + ' rank-icon'"></i>
               <span class="rank-number">{{ entry.rank }}</span>
             </div>
           </div>
@@ -218,7 +211,7 @@
             />
             } @else {
             <div class="avatar-placeholder">
-              <ion-icon name="person" class="avatar-icon"></ion-icon>
+              <i class="fas fa-user avatar-icon"></i>
             </div>
             }
           </div>
@@ -259,7 +252,7 @@
   <div class="auth-prompt">
     <div class="prompt-shrine">
       <div class="shrine-content">
-        <ion-icon name="trophy" class="prompt-icon"></ion-icon>
+        <i class="fas fa-trophy prompt-icon"></i>
         <h3 dir="rtl">سجل دخولك للمنافسة</h3>
         <p dir="rtl">
           سجل دخولك بحساب Google لحفظ نتائجك والظهور في لوحة الشرف
